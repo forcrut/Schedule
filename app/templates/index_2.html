@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media (max-width: 1250px) {
+            .main {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 1300px) {
+            .form-group {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+            .teacher {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        #teacher-schedule {
+            z-index: 500;
+        }
+        .btn-purple {
+            background-color: rgb(159, 62, 213);
+            color: white;
+            border: 1px solid darkpurple;
+            padding: 5px 10px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-purple.active {
+            background-color: purple;
+            box-shadow: 0 0 10px rgba(128, 0, 128, 0.5);
+        }
+        .table thead th {
+            vertical-align: middle;
+        }
+        .dropdown-menu, .table {
+            display: none;
+            position: absolute;
+            width: 100%;
+            z-index: 1000;
+            border: 1px solid #ccc;
+            background-color: white;
+            padding: 0;
+        }
+        .dropdown-menu.show, .table.show {
+            display: block;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <header class="container-fluid">
+       <h1 class="text-center">Расписание</h1>
+    </header>
+    <div class="container main mt-5 col-md-8">
+        <!-- Кнопки управления вкладками -->
+        <div class="btn-group-lg" role="group" aria-label="Toggle buttons">
+            <div class="row">
+                <div class="col-6">
+                    <button type="button" class="btn btn-primary btn-block text-center active" id="btn1">Студентов</button>
+                </div>
+                <div class="col-6">
+                    <button type="button" class="btn btn-purple btn-block text-center" id="btn2">Преподавателей</button>
+                </div>
+            </div>
+        </div> 
+        <!-- Первый контейнер, содержащий вкладку для студентов -->
+        <div class="container mt-5 col-md-12 col-sm-12 col-xs-12" id="content1" style="display: block;">
+            <div class="row">
+                <div class="col-md-2 col-sm-6 col-xs-12 form-group">
+                    <label for="comboBox1">Университет</label>
+                    <select class="form-control" id="comboBox1" name="comboBox1">
+                        <option value="">Выберите</option>
+                        {% for uni_name in unis_names %}
+                            <option value="{{ uni_name }}">{{ uni_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12 form-group">
+                    <label for="comboBox2">Факультет</label>
+                    <select class="form-control" id="comboBox2" name="comboBox2" disabled>
+                        <option value="">Выберите</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12 form-group">
+                    <label for="comboBox3" class="text-center">Тип обучения</label>
+                    <select class="form-control" id="comboBox3" name="comboBox3" disabled>
+                        <option value="">Выберите</option>
+                    </select>
+                </div>
+                <div class="col-md-1 col-sm-6 col-xs-12 form-group">
+                    <label for="comboBox4">Курс</label>
+                    <select class="form-control" id="comboBox4" name="comboBox4" disabled>
+                        <option value="">Выберите</option>
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6 col-xs-12 form-group">
+                    <label for="comboBox5">Группа</label>
+                    <select class="form-control" id="comboBox5" name="comboBox5" disabled>
+                        <option value="">Выберите</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Таблица -->
+            <div class="table-responsive">
+                <table class="table table-bordered" id="students-schedule"></table>                
+            </div>
+        </div>
+        <!-- Второй контейнер, содержащий вкладку для преподавателей -->
+        <div class="container mt-5 col-md-12" id="content2" style="display: None;">
+            <div class="row">
+                <div class="col-md-3 col-sm-12 col-xs-12 form-group teacher">
+                    <label for="comboBox7">Университет</label>
+                    <select class="form-control" id="comboBox7" name="comboBox7">
+                        <option value="">Выберите</option>
+                        {% for uni_name in unis_names %}
+                            <option value="{{ uni_name }}">{{ uni_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col"> 
+                    <h5>Поиск преподавателя</h5>
+                    <div class="form-group position-relative teacher">
+                        <input type="text" class="form-control" id="search-input" disabled placeholder="Поиск...">
+                        <div class="dropdown-menu" id="suggestions"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Таблица -->
+        </div>    
+    </div>
+    <footer class="navbar navbar-default fixed-bottom bg-dark text-light">
+        <div class="container">
+            <p>&copy; 2024 Дипломная работа Статуева Кирилла Васильевича</p>
+        </div>
+    </footer>
+
+    <script>
+        $(document).ready(function() {
+
+            $("#comboBox1").val("");
+            updateComboBox(1, '#comboBox1', ['#comboBox2', '#comboBox3', '#comboBox4', '#comboBox5']);
+            $("#comboBox7").val("");
+            $('#search-input').val("");
+
+
+            $('#comboBox1').change(function() {
+                updateComboBox(1, '#comboBox1', ['#comboBox2', '#comboBox3', '#comboBox4', '#comboBox5']);
+            });
+
+            $('#comboBox2').change(function() {
+                updateComboBox(2, '#comboBox2', ['#comboBox3', '#comboBox4', '#comboBox5']);
+            });
+
+            $('#comboBox3').change(function() {
+                updateComboBox(3, '#comboBox3', ['#comboBox4', '#comboBox5']);
+            });
+
+            $('#comboBox4').change(function() {
+                updateComboBox(4, '#comboBox4', ['#comboBox5']);
+            });
+
+            $('#comboBox5').change(function() {
+                var selectedValue = $(this).val();
+                var targetId = '#students-schedule';
+                if (selectedValue) {
+                    // Формирование ajax-запроса, создание таблички и ее отображение
+                    $(targetId).prop('disabled', false);
+                    console.log("{{ url_for('get_options') }}")
+                    $.ajax({
+                        url: "{{ url_for('get_options') }}",
+                        type: "GET",
+                        data: { level: 5, selected_value: selectedValue },
+                        success: function(data) {
+                            var rows = data.options;
+                            $(targetId).empty();
+                            if (rows.length) {
+                                var header = '<thead class="align-items-center">\n<tr>\n';
+                                rows.shift().forEach(function(column_name) {
+                                    header += `<th class='text-center'>${column_name}</th>\n`;
+                                });
+                                $(targetId).append(header + '</tr>\n</thead>\n<tbody>\n');
+                                header = null;
+                                var row;
+                                rows.forEach(function(buffer) {
+                                    if (typeof buffer === 'string') {
+                                        $(targetId).append(`<tr>\n<td colspan="9" class="text-center">${buffer}</td>\n</tr>\n`);
+                                    } else {
+                                        row = '<tr>\n';
+                                        buffer.forEach(function(field) {
+                                            row += `<td>${field === null ? "" : field}</td>\n`
+                                        });
+                                        $(targetId).append(row + '</tr>\n');
+                                    } 
+                                });
+                                row = null;
+                            } else {
+                                $(targetId).append('<h2 class="text-center">Расписание не найдено</h2>');
+                            }
+                        }
+                    });
+                    $(targetId).addClass('show');
+                } else {
+                    // Если табличка была отображена, то убираем ее
+                    if (!$(targetId).prop('disabled')) {
+                        $(targetId).empty();
+                        $(targetId).removeClass('show');
+                    }
+                };
+            });
+
+            function updateComboBox(level, sourceId, targetIds) {
+                $('#students-schedule').empty();
+                $('#students-schedule').removeClass('show');
+                targetIds.forEach(function(targetId) {
+                    $(targetId).empty();
+                    $(targetId).append('<option value="">Выберите</option>');
+                    $(targetId).prop('disabled', true);
+                });
+                var selectedValue = $(sourceId).val();
+                var targetId = targetIds.shift();
+                if (selectedValue) {
+                    targetIds.forEach(function(targetId) {
+                        if (!$(targetId).prop('disabled')){
+                            $(targetId).empty();
+                            $(targetId).append('<option value="">Выберите</option>');
+                            $(targetId).prop('disabled', true);
+                        }
+                    });
+                    $.ajax({
+                        url: "{{ url_for('get_options') }}",
+                        type: "GET",
+                        data: { level: level, selected_value: selectedValue },
+                        success: function(data) {
+                            var options = data.options;
+                            $(targetId).empty();
+                            $(targetId).append('<option value="">Выберите</option>');
+                            options.forEach(function(option) {
+                                $(targetId).append('<option value="' + option + '">' + option + '</option>');
+                            });
+                            $(targetId).prop('disabled', false);
+                        }
+                    });
+                } else {
+                    targetIds.forEach(function(targetId) {
+                        if (!$(targetId).prop('disabled')){
+                            $(targetId).empty();
+                            $(targetId).append('<option value="">Выберите</option>');
+                            $(targetId).prop('disabled', true);
+                        }
+                    })
+                }
+            };
+            $("#btn1").click(function() {
+                $("#comboBox7").val("");
+                $('#search-input').val("");
+                $("#content1").show();
+                $("#content2").hide();
+                $("#btn1").addClass("active");
+                $("#btn2").removeClass("active");
+              });
+
+            $("#btn2").click(function() {
+                $("#comboBox1").val("");
+                updateComboBox(1, '#comboBox1', ['#comboBox2', '#comboBox3', '#comboBox4', '#comboBox5']);
+                $("#content1").hide();
+                $('#search-input').prop('disabled', true)
+                $("#content2").show();
+                $("#btn1").removeClass("active");
+                $("#btn2").addClass("active");
+              });
+
+            $('#comboBox7').change(function() {
+                $('#search-input').val("");
+                if ($(this).val()) {
+                    $('#search-input').prop('disabled', false)
+                } else {
+                    $('#search-input').prop('disabled', true)
+                }
+            });
+
+            $('#search-input').on('input', function() {
+                var query = $(this).val();
+                if (query) {
+                    $.ajax({
+                        url: "{{ url_for('search') }}",
+                        type: "GET",
+                        data: { query: query, uni_name: $('#comboBox7').val() },
+                        success: function(data) {
+                            $('#suggestions').empty();
+                            if (data.length) {
+                                data.forEach(function(item) {
+                                    $('#suggestions').append('<a href="#" class="list-group-item list-group-item-action">' + item + '</a>');
+                                });
+                                $('#suggestions').addClass('show');
+                            } else {
+                                $('#suggestions').removeClass('show');
+                            }
+                        }
+                    });
+                } else {
+                    $('#suggestions').empty().removeClass('show');
+                }
+            });
+
+            // Handle suggestion click
+            $('#suggestions').on('click', '.list-group-item', function(e) {
+                e.preventDefault();
+                $('#search-input').val($(this).text());
+                $('#suggestions').removeClass('show');
+            });
+
+            // Hide dropdown when clicking outside
+            $(document).click(function(event) {
+                if (!$(event.target).closest('.form-group').length) {
+                    $('#suggestions').removeClass('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

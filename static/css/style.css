@@ -1,0 +1,113 @@
+@media (min-width: 1650px) and (max-width: 1850px) {
+    .main {
+        flex: 0 0 75%;
+        max-width: 75%;
+    }
+}
+@media (min-width: 1450px) and (max-width: 1650px) {
+    .main {
+        flex: 0 0 85%;
+        max-width: 85%;
+    }
+}
+@media (min-width: 1250px) and (max-width: 1450px) {
+    .main {
+        flex: 0 0 95%;
+        max-width: 95%;
+    }
+}
+@media (max-width: 1250px) {
+    .main {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+/*768*/
+@media (min-width: 575px) and (max-width: 1300px) { 
+    .form-group {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    .teacher {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    .main #content2 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+#teacher-schedule {
+    z-index: 500;
+}
+.btn-xl {
+    padding: 16px 0px;
+    font-size: 26px;
+}
+.btn-purple {
+    background-color: rgb(159, 62, 213);
+    color: white;
+    border: 1px solid darkpurple;
+}
+.btn-blue {
+    background-color: blue;
+    color: white;
+    border: 1px solid blue;
+}
+.btn-purple, .btn-blue {
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+.btn-purple.active {
+    background-color: purple;
+    box-shadow: 0 0 15px rgba(128, 0, 128, 0.5);
+}
+.btn-blue.active {
+    background-color: rgba(27, 27, 179, 1);
+    box-shadow: 0 0 15px rgba(23, 44, 175, 1);
+}
+label {
+    font-size: 20px;
+}
+.text-grey {
+    color: lightgrey;
+}
+.table thead th, .table tr td {
+    vertical-align: middle;
+    text-align: center;
+}
+.table thead th {
+    font-size: 20px;
+}
+.text-xl {
+    font-size: 1.5rem;
+}
+.white-space {
+    display: block;
+    white-space: pre-line;
+}
+.dropdown-menu, .table {
+    display: none;
+    width: 100%;
+    z-index: 1000;
+    border: 1px solid #ccc;
+    background-color: white;
+    padding: 0;
+}
+.dropdown-menu.show, .table.show {
+    display: block;
+}
+#infoText {
+    display: none;
+}
+#infoText.show {
+    display: block;
+}
+.modal-body {
+    max-width: 400px;
+    margin: 1.75rem auto;
+}
+.main {
+     padding-bottom: 70px;
+}
